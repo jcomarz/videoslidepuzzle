@@ -273,6 +273,19 @@
         <div class="toggle-track"></div>
       </label>
     </div>
+
+    <div class="snd-toggle-row">
+      <span class="snd-toggle-label">▶ Video audio</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="vid-audio-toggle">
+        <div class="toggle-track"></div>
+      </label>
+    </div>
+    <div id="vid-vol-row" style="display:none;align-items:center;gap:10px">
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap">Volume</span>
+      <input type="range" id="vid-vol-slider" min="0" max="100" value="80" style="flex:1;accent-color:var(--amber);height:4px;cursor:pointer">
+      <span id="vid-vol-val" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--amber);min-width:28px">80%</span>
+    </div>
     <div class="snd-actions">
       <button class="btn" onclick="document.getElementById('snd-input').value='';document.getElementById('snd-input').click()">＋ Add files</button>
       <button class="btn" id="snd-clear-btn">Clear all</button>
@@ -618,6 +631,7 @@ function hideFsWin(){
 
 function resetToUpload(){
   if(raf){cancelAnimationFrame(raf);raf=null}clearInterval(timerInterval);
+  video.muted=true;
   video.src='';closeFs();
   document.getElementById('game-zone').style.display='none';
   document.getElementById('header-stats').style.display='none';
@@ -774,6 +788,22 @@ document.getElementById('snd-hdr').addEventListener('click',()=>{
   const open=body.style.display==='flex';body.style.display=open?'none':'flex';chv.textContent=open?'▼ expand':'▲ collapse';
 });
 document.getElementById('snd-enabled').addEventListener('change',e=>{sndEnabled=e.target.checked});
+
+document.getElementById('vid-audio-toggle').addEventListener('change',e=>{
+  const on=e.target.checked;
+  video.muted=!on;
+  document.getElementById('vid-vol-row').style.display=on?'flex':'none';
+  if(on){
+    video.volume=parseInt(document.getElementById('vid-vol-slider').value)/100;
+    // Android Chrome requires user gesture to unmute — call play() again
+    video.play().catch(()=>{});
+  }
+});
+
+document.getElementById('vid-vol-slider').addEventListener('input',e=>{
+  video.volume=parseInt(e.target.value)/100;
+  document.getElementById('vid-vol-val').textContent=e.target.value+'%';
+});
 document.getElementById('snd-input').addEventListener('change',e=>{if(e.target.files.length)addSoundFiles(e.target.files)});
 document.getElementById('snd-clear-btn').addEventListener('click',()=>{sndClips.forEach(c=>idbDel(c.id));sndClips=[];sndBuffers={};saveSndClips();renderSndList();showToast('Sounds cleared')});
 document.getElementById('xi-save-btn').addEventListener('click',()=>{
